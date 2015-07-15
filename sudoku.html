@@ -1,0 +1,162 @@
+<html>
+	<head></head>
+	<body>
+		<div id="sudoku">
+			<canvas id="canvas_sudoku" width="280px" height="280px"></canvas>
+		</div>
+	</body>
+	<script type="text/javascript">
+		function Field () {
+		
+		}
+
+		function Cell (row, col, context) {
+			this.width      = 30;
+			this.height     = 30;
+			this.top        = this.height * row;
+			this.left       = this.width * col;
+			this.value      = 0;
+			this.isOpen     = false;
+			this.ctx        = context;
+			this.bgColor    = '#d6e5ff';
+			this.textColor  = '#435';
+			this.hoverColor = '#f3ffbf';
+		}
+		Cell.prototype = {
+			draw: function () {
+				this.ctx.fillStyle = this.bgColor;
+        this.ctx.fillRect(this.left, this.top, this.width, this.height);
+        this.ctx.lineWidth = "1";
+				this.ctx.strokeStyle = "#444";
+        this.ctx.strokeRect(this.left, this.top, this.width, this.height);
+			},
+			drawBorder9Cells: function () {
+				var _topX, _topY;
+				for (var i=0; i<3; i++) {
+					for (var j=0; j<3; j++) {
+						_topX = i * 3 * this.height;
+						_topY = j * 3 * this.width;
+						this.ctx.lineWidth = "3";
+		        this.ctx.strokeStyle = "blue";
+		        this.ctx.strokeRect(_topX, _topY, 90, 90);
+		      }
+	      }
+			},
+			isHovered: function () {
+				this.ctx.fillStyle = this.hoverColor;
+        this.ctx.fillRect(this.left, this.top, this.width, this.height);
+        this.ctx.lineWidth = "1";
+				this.ctx.strokeStyle = "#444";
+        this.ctx.strokeRect(this.left, this.top, this.width, this.height);
+			},
+			showValue: function () {
+				context.fillStyle = this.textColor;
+				context.fillText(this.value, this.left + 10, this.top + 10);
+			}
+		}
+
+		var SIZE_OF_CELL = 9, ALLOW_NUMBER = [1,2,3,4,5,6,7,8,9];
+		var canvas, context;
+		var cells = [], puzzle = [];
+		var lastestCellHover;
+
+		canvas = document.getElementById('canvas_sudoku');
+		context = canvas.getContext('2d');
+		init();
+
+		function init () {
+			generateSudokuPuzzle();
+			// console.log(puzzle);
+			initCell();
+
+			canvas.onmousemove = function (e) {
+				var _posCell = getCellHoveredByMousePosition(e, canvas);
+				if (_posCell !== undefined) {
+					var _row = _posCell.row, _col = _posCell.col;
+					if (cells[_row][_col] && cells[_row][_col].value == 0) {
+						if (lastestCellHover !== undefined) {
+							lastestCellHover.draw();
+						}
+						cells[_row][_col].isHovered();
+						lastestCellHover = cells[_row][_col];
+						cells[0][0].drawBorder9Cells();
+					}
+				}
+			}
+
+			canvas.onclick = function (e) {
+
+			}
+		}
+
+		function generateSudokuPuzzle () {
+			var _rnd, _arr, _tg, _allow, dem;
+			puzzle = new Array(SIZE_OF_CELL);
+
+			for (var i=0; i<SIZE_OF_CELL; i++) {
+				_arr = [1,2,3,4,5,6,7,8,9];
+				puzzle[i] = [], dem = 0;
+			
+				while (puzzle[i].length < SIZE_OF_CELL) {
+					_rnd = _arr[Math.floor(Math.random() * _arr.length)];
+					if (checkExistNumberInCol(puzzle, dem, _rnd) == 'Empty') {
+						puzzle[i].push(_rnd);
+						dem++;
+					}
+				}
+
+			}
+			console.log(puzzle);
+
+
+			function checkExistNumberInCol (arr, col, number) {
+				for (var i=0; i<SIZE_OF_CELL; i++) {
+					if (arr[i][col] === number) {
+						return 'Exist';
+					}
+				}
+				return 'Empty';
+			}
+
+			function checkExistNumberInBlock (arr, number) {
+
+			}
+		}
+
+		function initCell () {
+			cells = new Array(SIZE_OF_CELL);
+			for (var i=0; i<SIZE_OF_CELL; i++) {
+				cells[i] = new Array(SIZE_OF_CELL);
+				for (var j=0; j<SIZE_OF_CELL; j++) {
+					cells[i][j] = new Cell(i, j, context);
+					cells[i][j].value = puzzle[i][j];
+					cells[i][j].draw();
+					cells[i][j].showValue();
+				}
+			}
+			cells[0][0].drawBorder9Cells();
+		}
+
+		function getCellHoveredByMousePosition (evt, canvas) {
+			var _pos = getMousePosition(evt, canvas);
+			var _i = Math.floor(_pos.y / 30);
+			var _j = Math.floor(_pos.x / 30);
+			if (_i < SIZE_OF_CELL && _j < SIZE_OF_CELL) {
+				return {
+					row: _i,
+					col: _j 
+				};
+			} else {
+				return undefined;
+			}
+		}
+
+		function getMousePosition (evt, canvas) {
+			var _rect = canvas.getBoundingClientRect();
+			return {
+				x: evt.clientX - _rect.left,
+				y: evt.clientY - _rect.top
+			};
+		}
+	</script>
+</html>
